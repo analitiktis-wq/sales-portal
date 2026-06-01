@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Портал эффективности — Отдел продаж</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0ede6;--border:rgba(0,0,0,.10);
+  --text:#1a1916;--text2:#6b6960;--text3:#9b9890;
+  --accent:#2d5a8e;--accent2:#1e3f63;
+  --green:#1a7a4a;--green-bg:#e8f5ee;
+  --amber:#c47c1a;--amber-bg:#fef3e2;
+  --red:#b83232;--red-bg:#fce8e8;
+  --blue-bg:#e8eef7;--radius:10px;--radius-lg:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Georgia','Times New Roman',serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+.login-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:3rem;width:100%;max-width:420px;}
+.login-logo{text-align:center;margin-bottom:2rem;}
+.login-logo h1{font-size:20px;font-weight:normal;color:var(--accent);letter-spacing:.02em;margin-bottom:4px;}
+.login-logo p{font-size:13px;color:var(--text3);font-family:'Arial',sans-serif;}
+.login-divider{height:1px;background:var(--border);margin:1.5rem 0;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'Arial',sans-serif;margin-bottom:6px;}
+.form-group input{width:100%;padding:10px 14px;border:.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:'Arial',sans-serif;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s;}
+.form-group input:focus{border-color:var(--accent);background:#fff;}
+.login-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-family:'Arial',sans-serif;cursor:pointer;margin-top:.5rem;transition:background .2s;}
+.login-btn:hover{background:var(--accent2);}
+.login-error{color:var(--red);font-size:13px;font-family:'Arial',sans-serif;text-align:center;margin-top:.75rem;display:none;}
+/* APP SHELL */
+#app{display:none;min-height:100vh;}
+.app-header{background:var(--surface);border-bottom:.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;}
+.header-logo{font-size:15px;color:var(--accent);letter-spacing:.02em;}
+.header-user{display:flex;align-items:center;gap:10px;}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'Arial',sans-serif;color:var(--accent);font-weight:bold;flex-shrink:0;}
+.user-name{font-size:13px;font-family:'Arial',sans-serif;color:var(--text);}
+.logout-btn{font-size:12px;font-family:'Arial',sans-serif;color:var(--text3);background:none;border:.5px solid var(--border);padding:5px 10px;border-radius:6px;cursor:pointer;}
+.logout-btn:hover{border-color:var(--text2);color:var(--text);}
+.main-content{max-width:1300px;margin:0 auto;padding:1.5rem 2rem;}
+.page-header{margin-bottom:1.5rem;}
+.page-header h2{font-size:22px;font-weight:normal;margin-bottom:3px;}
+.page-header p{font-size:13px;color:var(--text2);font-family:'Arial',sans-serif;}
+/* TABS */
+.tab-strip{display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:var(--radius);width:fit-content;flex-wrap:wrap;margin-bottom:1.25rem;}
+.tab-btn{padding:5px 14px;border-radius:7px;font-size:13px;font-family:'Arial',sans-serif;cursor:pointer;border:none;background:none;color:var(--text2);transition:all .15s;white-space:nowrap;}
+.tab-btn.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+/* YEAR SELECTOR */
+.year-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;}
+.year-label{font-size:12px;font-family:'Arial',sans-serif;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;}
+.year-btn{padding:4px 14px;border:.5px solid var(--border);border-radius:20px;font-size:13px;font-family:'Arial',sans-serif;cursor:pointer;background:none;color:var(--text2);}
+.year-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.year-btn:hover:not(.active){border-color:var(--accent);color:var(--accent);}
+.add-year-btn{padding:4px 12px;border:.5px dashed var(--border);border-radius:20px;font-size:12px;font-family:'Arial',sans-serif;cursor:pointer;background:none;color:var(--text3);}
+.add-year-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* SECTIONS */
+.section{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem;}
+.section-title{font-size:13px;font-family:'Arial',sans-serif;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem;}
+/* METRICS */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem;}
+.mc{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem;}
+.mc-label{font-size:11px;font-family:'Arial',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:5px;}
+.mc-val{font-size:24px;font-weight:normal;}
+.mc-sub{font-size:11px;font-family:'Arial',sans-serif;color:var(--text3);margin-top:2px;}
+.mc.hl{background:var(--blue-bg);border-color:rgba(45,90,142,.2);}
+.mc.hl .mc-val{color:var(--accent);}
+/* PROG */
+.pb{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;min-width:60px;}
+.pf{height:100%;border-radius:3px;background:var(--accent);}
+/* TABLES */
+.rtbl{width:100%;border-collapse:collapse;font-size:13px;font-family:'Arial',sans-serif;}
+.rtbl th{font-size:11px;font-weight:normal;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:7px 8px;border-bottom:.5px solid var(--border);text-align:left;white-space:nowrap;}
+.rtbl td{padding:9px 8px;border-bottom:.5px solid var(--border);vertical-align:middle;}
+.rtbl tr:last-child td{border-bottom:none;}
+.rtbl tr:hover td{background:rgba(45,90,142,.02);}
+.rank-badge{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;}
+.r1{background:#fff3cd;color:#8a6c00;}.r2{background:#e8e8e8;color:#555;}.r3{background:#fde8d8;color:#a05a20;}.rn{background:var(--surface2);color:var(--text3);}
+/* INPUT TABLE */
+.itbl{width:100%;border-collapse:collapse;font-size:12px;font-family:'Arial',sans-serif;}
+.itbl th{font-size:10px;font-weight:normal;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:6px 5px;border-bottom:.5px solid var(--border);text-align:center;white-space:nowrap;}
+.itbl th.ec{color:var(--accent);background:rgba(45,90,142,.03);}
+.itbl th.cc{color:var(--green);}
+.itbl th.kc{color:var(--accent);font-weight:500;}
+.itbl td{padding:4px 5px;border-bottom:.5px solid var(--border);vertical-align:middle;text-align:center;}
+.itbl tr:last-child td{border-bottom:none;}
+.itbl tr:hover td{background:rgba(45,90,142,.02);}
+.itbl .avg-row td{background:rgba(45,90,142,.05);font-weight:500;color:var(--accent);}
+.itbl .name-td{text-align:left;white-space:nowrap;font-size:12px;}
+.ni{width:66px;padding:3px 5px;border:.5px solid var(--border);border-radius:5px;font-size:12px;font-family:'Arial',sans-serif;background:var(--bg);color:var(--text);outline:none;text-align:center;}
+.ni:focus{border-color:var(--accent);background:#fff;}
+.pi{width:58px;padding:3px 5px;border:.5px solid rgba(45,90,142,.3);border-radius:5px;font-size:12px;font-family:'Arial',sans-serif;background:rgba(45,90,142,.04);color:var(--text);outline:none;text-align:center;}
+.pi:focus{border-color:var(--accent);background:#fff;}
+.cc-cell{font-size:12px;color:var(--green);}
+.ktu-cell{font-size:13px;font-weight:500;}
+.ktu-g{color:var(--green);}.ktu-a{color:var(--accent);}.ktu-w{color:var(--amber);}
+/* CUMULATIVE VIEW */
+.cumul-section{background:var(--surface2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;}
+.cumul-title{font-size:13px;font-family:'Arial',sans-serif;color:var(--accent);font-weight:500;margin-bottom:1rem;}
+.cumul-period{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1rem;}
+.cumul-period label{font-size:12px;font-family:'Arial',sans-serif;color:var(--text2);}
+.cumul-period select{padding:4px 8px;border:.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Arial',sans-serif;background:var(--surface);color:var(--text);outline:none;}
+/* SW */
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sw-card{padding:.9rem;border-radius:var(--radius);border:.5px solid var(--border);}
+.sw-card.str{background:var(--green-bg);border-color:rgba(26,122,74,.2);}
+.sw-card.wk{background:var(--amber-bg);border-color:rgba(196,124,26,.2);}
+.sw-lbl{font-size:10px;font-family:'Arial',sans-serif;text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;}
+.str .sw-lbl{color:var(--green);}.wk .sw-lbl{color:var(--amber);}
+.sw-list{list-style:none;}
+.sw-list li{font-size:12px;font-family:'Arial',sans-serif;padding:2px 0;}
+.sw-list li::before{content:"→ ";color:var(--text3);}
+/* COMMENT */
+.cmt-box{background:var(--surface2);border-radius:var(--radius);padding:1.1rem;border-left:3px solid var(--accent);}
+.cmt-meta{font-size:10px;font-family:'Arial',sans-serif;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.cmt-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cmt-empty{font-size:12px;font-family:'Arial',sans-serif;color:var(--text3);font-style:italic;}
+.cmt-editor textarea{width:100%;border:.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:13px;font-family:'Georgia',serif;color:var(--text);background:var(--bg);resize:vertical;min-height:72px;outline:none;}
+.cmt-editor textarea:focus{border-color:var(--accent);background:#fff;}
+.save-btn{padding:7px 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:12px;font-family:'Arial',sans-serif;cursor:pointer;}
+.save-btn:hover{background:var(--accent2);}
+/* ADMIN NAV */
+.admin-nav{display:flex;gap:7px;margin-bottom:1.25rem;flex-wrap:wrap;}
+.anb{padding:7px 16px;border:.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:'Arial',sans-serif;cursor:pointer;background:var(--surface);color:var(--text2);}
+.anb.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.anb:hover:not(.active){border-color:var(--accent);color:var(--accent);}
+/* OFFICE TAGS */
+.ot{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;background:var(--blue-bg);color:var(--accent);font-family:'Arial',sans-serif;margin-left:3px;vertical-align:middle;}
+.ot.dok{background:#f0e8f5;color:#7b4ea0;}.ot.all{background:#e8f5f0;color:#1a7490;}
+/* CHARTS */
+.cw{position:relative;width:100%;height:210px;}
+.cwt{position:relative;width:100%;height:280px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+@media(max-width:700px){.two-col{grid-template-columns:1fr;}.sw-grid{grid-template-columns:1fr;}}
+.hidden{display:none!important;}
+.formula-box{background:#fff;border:.5px solid var(--border);border-radius:var(--radius);padding:.9rem;margin-top:1rem;font-size:11px;font-family:'Arial',sans-serif;color:var(--text2);line-height:1.8;}
+.formula-box b{color:var(--accent);}
+.legend-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:.9rem;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-family:'Arial',sans-serif;color:var(--text2);}
+.ld{width:10px;height:10px;border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>Портал эффективности</h1>
+      <p>Отдел продаж</p>
+    </div>
+    <div class="login-divider"></div>
+    <div class="form-group"><label>Логин</label><input type="text" id="li" autocomplete="username" placeholder="Введите логин"/></div>
+    <div class="form-group"><label>Пароль</label><input type="password" id="lp" autocomplete="current-password" placeholder="Введите пароль"/></div>
+    <button class="login-btn" onclick="doLogin()">Войти</button>
+    <p class="login-error" id="lerr">Неверный логин или пароль</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="app-header">
+    <div class="header-logo">Портал эффективности · Отдел продаж</div>
+    <div class="header-user">
+      <div class="user-avatar" id="hav">АД</div>
+      <span class="user-name" id="hname">Администратор</span>
+      <button class="logout-btn" onclick="doLogout()">Выйти</button>
+    </div>
+  </header>
+
+  <!-- MANAGER VIEW -->
+  <div id="manager-view" class="main-content hidden">
+    <div class="page-header">
+      <h2 id="mgr-greeting">Здравствуйте</h2>
+      <p id="mgr-sub">Ваши показатели · 2026</p>
+    </div>
+    <!-- Year + month selectors for manager -->
+    <div class="year-bar" id="mgr-year-bar"></div>
+    <div class="tab-strip" id="mgr-month-tabs"></div>
+    <div class="metrics-grid" id="mgr-metrics"></div>
+    <div class="two-col">
+      <div class="section"><div class="section-title">Воронка продаж</div><table class="rtbl" id="mgr-funnel"></table></div>
+      <div class="section"><div class="section-title">Динамика КТУ</div><div class="cw"><canvas id="mgr-ktu-chart" role="img" aria-label="КТУ по месяцам"></canvas></div></div>
+    </div>
+    <div class="two-col">
+      <div class="section"><div class="section-title">Коэффициенты</div><div id="mgr-coeffs"></div></div>
+      <div class="section"><div class="section-title">Сильные стороны и зоны роста</div><div class="sw-grid" id="mgr-sw"></div></div>
+    </div>
+    <div class="section"><div class="section-title">Комментарий руководителя</div><div id="mgr-comment"></div></div>
+
+    <div style="padding:.75rem 0 1rem;font-size:11px;font-family:'Arial',sans-serif;color:var(--text3);line-height:1.8;">
+      <p><b>* КТУ (Коэффициент трудового участия)</b> — итоговая оценка вашей эффективности с учётом нагрузки, активности и результата. Значение выше 1.0 означает что вы работаете эффективнее среднего по команде.</p>
+      <p style="margin-top:4px;"><b>** KPI (Интегральная оценка)</b> — показывает насколько ваши конверсии выше или ниже среднего по команде. Значение 1.0 = вы на уровне команды, выше 1.0 = лучше среднего, ниже = есть зоны роста. Формула: взвешенная сумма ваших конверсий относительно средних по команде за месяц.</p>
+    </div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="admin-view" class="main-content hidden">
+    <div class="page-header">
+      <h2>Панель администратора</h2>
+      <p>Управление данными · рейтинг · комментарии · накопительные показатели</p>
+    </div>
+    <div class="admin-nav">
+      <button class="anb active" onclick="adminTab('rating')">Рейтинг</button>
+      <button class="anb" onclick="adminTab('data')">Внести данные</button>
+      <button class="anb" onclick="adminTab('cumul')">Накопительные</button>
+      <button class="anb" onclick="adminTab('comments')">Комментарии</button>
+      <button class="anb" onclick="adminTab('analytics')">Аналитика</button>
+    </div>
+
+    <!-- RATING -->
+    <div id="tab-rating">
+      <div class="year-bar" id="adm-year-bar-r"></div>
+      <div class="tab-strip" id="adm-month-tabs-r">
+        <button class="tab-btn active" onclick="switchAdmRatingMonth(-1)">Накопительно за год</button>
+      </div>
+      <div class="section"><div class="section-title">Рейтинг менеджеров — КТУ</div><table class="rtbl" id="rating-table"></table></div>
+      <div class="section"><div class="section-title">График КТУ</div><div class="cwt"><canvas id="admin-bar-chart" role="img" aria-label="КТУ менеджеров"></canvas></div></div>
+    </div>
+
+    <!-- DATA INPUT -->
+    <div id="tab-data" class="hidden">
+      <div class="year-bar" id="adm-year-bar-d"></div>
+      <div class="tab-strip" id="adm-month-tabs-d"></div>
+      <div class="section">
+        <div class="section-title">Данные за месяц</div>
+        <div class="legend-row">
+          <div class="legend-item"><div class="ld" style="background:rgba(45,90,142,.15);border:.5px solid #2d5a8e;"></div>Вводится</div>
+          <div class="legend-item"><div class="ld" style="background:var(--green-bg);border:.5px solid var(--green);"></div>Рассчитывается автоматически</div>
+          <div class="legend-item"><div class="ld" style="background:var(--blue-bg);border:.5px solid var(--accent);"></div>КТУ</div>
+        </div>
+        <div style="overflow-x:auto;"><table class="itbl" id="input-table"></table></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:1rem;flex-wrap:wrap;">
+          <button class="save-btn" onclick="saveInputData()">Сохранить данные</button>
+          <span id="save-msg" style="font-size:12px;color:var(--green);font-family:'Arial',sans-serif;display:none;">✓ Сохранено в браузере</span>
+          <button onclick="clearMonthData()" style="padding:7px 12px;border:.5px solid var(--border);border-radius:var(--radius);font-size:11px;font-family:'Arial',sans-serif;cursor:pointer;background:none;color:var(--text3);">Очистить месяц</button>
+        </div>
+        <div class="formula-box">
+          <div style="color:#2d5a8e;font-weight:500;margin-bottom:5px;">Вводите: Звонки · Клиенты · Встречи · Брони · Покупатели · Целевые покупатели · Коэф. присутствия</div>
+          <b>Конверсии (автоматически):</b>
+          C1=Встречи/Клиенты · C2=Брони/Клиенты · C3=Покупатели/Брони (макс.100%) · C4=Покупатели/Клиенты · C5=Целевые/Клиенты<br>
+          <b>KPI* = 0.20×(C1/C̄1) + 0.25×(C2/C̄2) + 0.25×(C3/C̄3) + 0.10×(C4/C̄4) + 0.20×(C5/C̄5)</b>
+          <span style="color:var(--text3);font-size:10px;"> · C̄ — среднее по команде · если целевых нет — вклад C5=0</span><br>
+          <b>Кнагруз</b> = Клиенты / Среднее клиентов &nbsp;·&nbsp;
+          <b>Кактив</b> = 0.5×(Звонки/Ср.звонков) + 0.5×(Встречи/Ср.встреч) &nbsp;·&nbsp;
+          <b>Крез</b> = Покупатели / Среднее покупателей<br>
+          <b>КТУ = KPI × (0.4×Кнагруз + 0.3×Кактив + 0.3×Крез) / (0.5 + 0.5×Кприсут)</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUMULATIVE -->
+    <div id="tab-cumul" class="hidden">
+      <div class="section">
+        <div class="section-title">Накопительные показатели — настройка периода</div>
+        <div class="cumul-period">
+          <label>Год:</label>
+          <select id="cumul-year-from" onchange="renderCumul()"></select>
+          <label>с месяца:</label>
+          <select id="cumul-mo-from" onchange="renderCumul()"></select>
+          <label>по месяц:</label>
+          <select id="cumul-mo-to" onchange="renderCumul()"></select>
+          <span id="cumul-period-label" style="font-size:12px;font-family:'Arial',sans-serif;color:var(--text3);"></span>
+        </div>
+        <p style="font-size:12px;font-family:'Arial',sans-serif;color:var(--text2);margin-bottom:1rem;">
+          Звонки, Клиенты, Брони, Покупатели — <b>сумма</b>. Конверсии, КПИ, коэффициенты, КТУ — <b>среднее</b> за выбранные месяцы.
+        </p>
+        <div style="overflow-x:auto;"><table class="rtbl" id="cumul-table"></table></div>
+
+      </div>
+      <div class="section">
+        <div class="section-title">КТУ за период — сравнение</div>
+        <div class="cwt"><canvas id="cumul-chart" role="img" aria-label="КТУ за период"></canvas></div>
+      </div>
+    </div>
+
+    <!-- COMMENTS -->
+    <div id="tab-comments" class="hidden">
+      <div class="section">
+        <div class="section-title">Комментарии менеджерам</div>
+        <p style="font-size:12px;color:var(--text2);font-family:'Arial',sans-serif;margin-bottom:1.25rem;">Отображаются в личном кабинете менеджера.</p>
+        <div id="comments-form"></div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="tab-analytics" class="hidden">
+      <div class="two-col">
+        <div class="section"><div class="section-title">Динамика покупателей</div><div class="cw"><canvas id="buyers-chart" role="img" aria-label="Покупатели по месяцам"></canvas></div></div>
+        <div class="section"><div class="section-title">Конверсия Клиент→Покупатель</div><div class="cw"><canvas id="conv-chart" role="img" aria-label="Конверсия"></canvas></div></div>
+      </div>
+      <div class="section"><div class="section-title">Звонки по месяцам</div><div class="cwt"><canvas id="calls-chart" role="img" aria-label="Звонки"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// CONSTANTS
+// ================================================================
+const MANAGERS=[
+  {id:'burundukova', name:'Бурундукова Ирина',  initials:'БИ', office:'Этика',     officeKey:'etika',   login:'burundukova',  pass:'irina2026'},
+  {id:'kulikova',    name:'Куликова Любовь',     initials:'КЛ', office:'Гринвуд',   officeKey:'grinvud', login:'kulikova',     pass:'lyubov83'},
+  {id:'babushkina',  name:'Бабушкина Кристина',  initials:'БК', office:'Гринвуд',   officeKey:'grinvud', login:'babushkina',   pass:'kristina7'},
+  {id:'kryuchkova',  name:'Крючкова Марина',     initials:'КМ', office:'ДОК',       officeKey:'dok',     login:'kryuchkova',   pass:'marina44'},
+  {id:'odnokurtseva',name:'Однокурцева Дарья',   initials:'ОД', office:'Этика',     officeKey:'etika',   login:'odnokurtseva', pass:'darya19'},
+  {id:'karimova',    name:'Каримова Лилия',       initials:'КА', office:'Гринвуд',   officeKey:'grinvud', login:'karimova',     pass:'liliya5'},
+  {id:'tomchenko',   name:'Томченко Ольга',       initials:'ТО', office:'ДОК',       officeKey:'dok',     login:'tomchenko',    pass:'olga2026'},
+  {id:'gazeeva',     name:'Газеева Ольга',        initials:'ГО', office:'ДОК',       officeKey:'dok',     login:'gazeeva',      pass:'olga777'},
+  {id:'ganina',      name:'Ганина Юлия',          initials:'ГЮ', office:'Все офисы', officeKey:'etika',   login:'ganina',       pass:'yulia33'},
+];
+const ADMIN={login:'admin',pass:'admin2026'};
+const MONTH_NAMES=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const N=MANAGERS.length;
+const SK='sales_portal_v3';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbw99CN-8VsbW5YrFr9icTKoGj-9UAaSnL2IuaEsZbY0xSj2B-58ugozDky9oALQcvGLaw/exec';
+const KPI_W={c1:.20,c2:.25,c3:.25,c4:.10,c5:.20}; // единые веса для всех офисов
+
+// ================================================================
+// STORAGE — keyed by year
+// inputData[year][mi][mo] = {calls,clients,meetings,booked,buyers,presence}
+// comments[year][mgrId][mo] = string  (mo 0-11, 12=накопительно за год)
+// ================================================================
+const SEED_YEAR=2026;
+const SEED={
+  calls:    [[693,317,662,783],[480,507,679,908],[604,344,632,818],[613,771,900,690],[133,205,407,872],[469,423,397,839],[519,482,209,730],[271,289,371,425],[null,null,null,1011]],
+  clients:  [[253,102,149,152],[271,193,145,159],[337,141,159,96],[276,180,222,128],[259,144,205,96],[244,177,111,100],[219,167,111,95],[181,150,156,110],[null,null,null,135]],
+  meetings: [[44,32,28,23],[54,45,43,26],[37,18,51,27],[35,23,20,18],[44,38,34,43],[45,19,14,30],[19,12,8,8],[26,14,13,12],[null,null,null,24]],
+  booked:   [[44,29,9,14],[50,45,13,26],[38,69,19,23],[19,23,4,7],[38,38,7,34],[46,19,11,31],[27,12,5,12],[16,14,1,4],[null,null,null,14]],
+  buyers:   [[38,32,16,12],[38,19,57,13],[15,19,29,25],[14,19,13,4],[31,46,29,17],[34,23,30,14],[28,25,10,3],[11,10,13,5],[null,null,null,11]],
+  presence: [[1,.58,1,.762],[.87,.95,.90,.905],[.93,.68,1,1],[1,1,1,.762],[1,.89,1.05,1],[1,1,.76,1.048],[1.07,1,.52,.905],[1,1,1,.810],[null,null,null,1]],
+};
+
+function blankYearData(){
+  const d=[];
+  for(let mi=0;mi<N;mi++){d[mi]=[];for(let mo=0;mo<12;mo++) d[mi][mo]={calls:null,clients:null,meetings:null,booked:null,buyers:null,target_buyers:null,presence:null};}
+  return d;
+}
+function seedYearData(){
+  const d=[];
+  for(let mi=0;mi<N;mi++){
+    d[mi]=[];
+    for(let mo=0;mo<12;mo++){
+      d[mi][mo]={
+        calls:    SEED.calls[mi][mo]??null,
+        clients:  SEED.clients[mi][mo]??null,
+        meetings: SEED.meetings[mi][mo]??null,
+        booked:   SEED.booked[mi][mo]??null,
+        buyers:   SEED.buyers[mi][mo]??null,
+        presence: SEED.presence[mi][mo]??null,
+      };
+    }
+  }
+  return d;
+}
+function blankComments(){const c={};MANAGERS.forEach(m=>{c[m.id]=Array(13).fill('');});return c;}
+
+// ── GOOGLE SHEETS STORAGE ───────────────────────────────────────
+let inputData={};
+let comments={};
+let years=[SEED_YEAR];
+let dataLoaded=false;
+
+// JSONP helper — единственный способ GET из file:// без CORS
+function fetchJSONP(url){
+  return new Promise((resolve,reject)=>{
+    const cb='_cb'+Date.now();
+    // Apps Script не поддерживает JSONP — используем iframe trick через fetch с mode no-cors
+    // Вместо этого делаем обычный fetch (работает когда файл открыт через http или Google Drive)
+    fetch(url)
+      .then(r=>r.json())
+      .then(resolve)
+      .catch(reject);
+  });
+}
+
+async function loadFromSheets(){
+  if(!SCRIPT_URL||SCRIPT_URL==='__SCRIPT_URL__'){
+    try{
+      const raw=localStorage.getItem(SK);
+      if(raw){const p=JSON.parse(raw);inputData=p.inputData||{};comments=p.comments||{};years=p.years||[SEED_YEAR];}
+    }catch(e){}
+    ensureLocalDefaults();
+    return;
+  }
+  try{
+    showLoader('Загрузка данных из Google Sheets...');
+    const data=await fetchJSONP(SCRIPT_URL+'?action=getData');
+    if(data.error) throw new Error(data.error);
+    // Merge: данные из Sheets приоритетнее, но преобразуем индексы объектов в массивы
+    if(data.inputData){
+      // Apps Script возвращает объекты с числовыми ключами — конвертируем в массивы
+      Object.keys(data.inputData).forEach(year=>{
+        const yd=data.inputData[year];
+        inputData[year]=[];
+        for(let mi=0;mi<9;mi++){
+          inputData[year][mi]=[];
+          for(let mo=0;mo<12;mo++){
+            inputData[year][mi][mo]=(yd[mi]&&yd[mi][mo])||{calls:null,clients:null,meetings:null,booked:null,buyers:null,presence:null};
+          }
+        }
+      });
+    }
+    if(data.comments) comments=data.comments;
+    if(data.years&&data.years.length) years=data.years;
+    ensureLocalDefaults();
+    hideLoader();
+  }catch(e){
+    console.error('Sheets load error:',e);
+    showLoader('Нет связи с Google Sheets — работаем офлайн');
+    setTimeout(hideLoader,2500);
+    ensureLocalDefaults();
+  }
+}
+
+function ensureLocalDefaults(){
+  if(!inputData[SEED_YEAR]) inputData[SEED_YEAR]=seedYearData();
+  if(!comments[SEED_YEAR])  comments[SEED_YEAR]=blankComments();
+  if(!years.includes(SEED_YEAR)){years.unshift(SEED_YEAR);years.sort();}
+  dataLoaded=true;
+}
+
+// Сохранить данные одного менеджера за один месяц
+async function saveCellToSheets(year,managerId,month,data){
+  if(!SCRIPT_URL||SCRIPT_URL==='__SCRIPT_URL__'){
+    saveToLocalStorage(); return;
+  }
+  try{
+    // text/plain избегает CORS preflight
+    await fetch(SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'saveData',year,managerId,month,data})
+    });
+    saveToLocalStorage();
+  }catch(e){console.error('Sheets save error:',e);saveToLocalStorage();}
+}
+
+// Сохранить комментарий
+async function saveCommentToSheets(year,managerId,month,text){
+  if(!SCRIPT_URL||SCRIPT_URL==='__SCRIPT_URL__'){
+    saveToLocalStorage(); return;
+  }
+  try{
+    await fetch(SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'saveComment',year,managerId,month,text})
+    });
+    saveToLocalStorage();
+  }catch(e){console.error('Sheets comment error:',e);saveToLocalStorage();}
+}
+
+// Создать листы для нового года
+async function ensureYearInSheets(year){
+  if(!SCRIPT_URL||SCRIPT_URL==='__SCRIPT_URL__') return;
+  try{
+    await fetch(SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'ensureYear',year})
+    });
+  }catch(e){console.error('ensureYear error:',e);}
+}
+
+function saveToLocalStorage(){
+  try{localStorage.setItem(SK,JSON.stringify({inputData,comments,years}));}catch(e){}
+}
+// legacy saveState alias
+function saveState(){saveToLocalStorage();}
+
+// Loader UI
+function showLoader(msg){
+  let el=document.getElementById('global-loader');
+  if(!el){
+    el=document.createElement('div');
+    el.id='global-loader';
+    el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(245,244,240,.85);display:flex;align-items:center;justify-content:center;z-index:9999;font-family:Arial,sans-serif;font-size:14px;color:#2d5a8e;';
+    document.body.appendChild(el);
+  }
+  el.textContent=msg||'Загрузка...';
+  el.style.display='flex';
+}
+function hideLoader(){
+  const el=document.getElementById('global-loader');
+  if(el) el.style.display='none';
+}
+
+// ================================================================
+// CALCULATION ENGINE
+// ================================================================
+function safe(a,b){return b&&b>0?a/b:0;}
+
+function calcMonth(mi,year,mo){
+  const d=inputData[year]?.[mi]?.[mo];
+  if(!d||d.clients==null) return null;
+  const {calls,clients,meetings,booked,buyers,target_buyers,presence}=d;
+  // C1=Встречи/Клиенты  C2=Брони/Клиенты  C3=Покупатели/Брони
+  // C4=Покупатели/Клиенты  C5=ЦелевыеПокупатели/Клиенты
+  const cap=v=>Math.min(v,1);
+  const tb=target_buyers??0;
+  const c1=cap(safe(meetings,clients));
+  const c2=cap(safe(booked,clients));
+  const c3=cap(safe(buyers,booked));
+  const c4=cap(safe(buyers,clients));
+  const c5=cap(safe(tb,clients));
+  // KPI считается в calcMonthWithKTU после вычисления средних по команде
+  return {calls,clients,meetings,booked,buyers,target_buyers:tb,presence:presence??1,c1,c2,c3,c4,c5};
+}
+
+function calcMonthWithKTU(year,mo){
+  const rows=MANAGERS.map((_,mi)=>calcMonth(mi,year,mo));
+  const valid=rows.filter(r=>r!==null);
+  if(!valid.length) return rows;
+  const avg=key=>{const v=valid.map(r=>r[key]).filter(v=>v!=null&&v>=0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:1;};
+  const aC=avg('calls'),aCl=avg('clients'),aM=avg('meetings'),aB=avg('buyers');
+  const aC1=avg('c1')||1,aC2=avg('c2')||1,aC3=avg('c3')||1,aC4=avg('c4')||1;
+  // C5 среднее — только по менеджерам у которых есть целевые покупатели
+  const nonzeroC5=valid.filter(r=>r.target_buyers>0).map(r=>r.c5);
+  const aC5=nonzeroC5.length?nonzeroC5.reduce((a,b)=>a+b,0)/nonzeroC5.length:1;
+  return rows.map((r)=>{
+    if(!r) return null;
+    const w=KPI_W;
+    // C5 вклад только если есть целевые; иначе 0
+    const c5contrib=r.target_buyers>0?w.c5*(r.c5/aC5):0;
+    const kpi=w.c1*(r.c1/aC1)+w.c2*(r.c2/aC2)+w.c3*(r.c3/aC3)+w.c4*(r.c4/aC4)+c5contrib;
+    const kLoad=safe(r.clients,aCl);
+    const kActiv=aC>0&&aM>0?0.5*(r.calls/aC)+0.5*(r.meetings/aM):0;
+    const kRes=safe(r.buyers,aB);
+    const base=kpi*(0.4*kLoad+0.3*kActiv+0.3*kRes);
+    const ktu=Math.abs(r.presence-1)<0.001?base:base/(0.5+0.5*r.presence);
+    return {...r,kpi,kLoad,kActiv,kRes,ktu,aC,aCl,aM,aB,aC1,aC2,aC3,aC4,aC5};
+  });
+}
+
+// Cumulative for one manager over a range of months in a year
+// Returns aggregated object: sums for counts, averages for rates/coefficients
+function calcCumulRange(mi,year,moFrom,moTo){
+  const months=[];
+  for(let mo=moFrom;mo<=moTo;mo++){
+    const r=calcMonth(mi,year,mo);
+    if(r) months.push(r);
+  }
+  if(!months.length) return null;
+  const sum=key=>months.reduce((s,r)=>s+(r[key]||0),0);
+  const avg=key=>months.reduce((s,r)=>s+(r[key]||0),0)/months.length;
+  // Recalc conversions from totals for accuracy
+  const tCalls=sum('calls'),tClients=sum('clients'),tMeetings=sum('meetings'),tBooked=sum('booked'),tBuyers=sum('buyers'),tTarget=sum('target_buyers');
+  const capc=v=>Math.min(v,1);
+  const c1=capc(safe(tMeetings,tClients)),c2=capc(safe(tBooked,tClients)),c3=capc(safe(tBuyers,tBooked)),c4=capc(safe(tBuyers,tClients)),c5=capc(safe(tTarget,tClients));
+  return {calls:tCalls,clients:tClients,meetings:tMeetings,booked:tBooked,buyers:tBuyers,target_buyers:tTarget,
+    c1,c2,c3,c4,c5,
+    presence:avg('presence'),months:months.length};
+}
+
+// Full range with recalculated KTU from cumul averages
+function calcCumulRangeWithKTU(year,moFrom,moTo){
+  const raw=MANAGERS.map((_,mi)=>calcCumulRange(mi,year,moFrom,moTo));
+  const valid=raw.filter(r=>r!==null);
+  if(!valid.length) return raw;
+  const avg=key=>{const v=valid.map(r=>r[key]).filter(v=>v!=null&&v>=0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:1;};
+  const aCalls=avg('calls'),aClients=avg('clients'),aMeetings=avg('meetings'),aBuyers=avg('buyers');
+  // Средние конверсии по команде за период
+  const aC1=avg('c1')||1,aC2=avg('c2')||1,aC3=avg('c3')||1,aC4=avg('c4')||1;
+  const nonzeroC5=valid.filter(r=>r.target_buyers>0).map(r=>r.c5);
+  const aC5=nonzeroC5.length?nonzeroC5.reduce((a,b)=>a+b,0)/nonzeroC5.length:1;
+  return raw.map((r)=>{
+    if(!r) return null;
+    const w=KPI_W;
+    const c5contrib=r.target_buyers>0?w.c5*(r.c5/aC5):0;
+    const kpi=w.c1*(r.c1/aC1)+w.c2*(r.c2/aC2)+w.c3*(r.c3/aC3)+w.c4*(r.c4/aC4)+c5contrib;
+    const kLoad=safe(r.clients,aClients);
+    const kActiv=aCalls>0&&aMeetings>0?0.5*(r.calls/aCalls)+0.5*(r.meetings/aMeetings):0;
+    const kRes=safe(r.buyers,aBuyers);
+    const base=kpi*(0.4*kLoad+0.3*kActiv+0.3*kRes);
+    const ktu=Math.abs(r.presence-1)<0.001?base:base/(0.5+0.5*r.presence);
+    return {...r,kpi,kLoad,kActiv,kRes,ktu};
+  });
+}
+
+// ================================================================
+// STATE VARS
+// ================================================================
+let currentUser=null;
+let selectedYear=SEED_YEAR;
+let mgrSelectedYear=SEED_YEAR;
+let mgrSelectedMo=0; // 0-11 = month, -1 = year cumul
+let admRatingYear=SEED_YEAR;
+let admRatingMo=-1;
+let admDataYear=SEED_YEAR;
+let admDataMo=0;
+let cumulMoFrom=0,cumulMoTo=3;
+let charts={mgr:null,admBar:null,buyers:null,conv:null,calls:null,cumul:null};
+
+function destroyCharts(){Object.keys(charts).forEach(k=>{if(charts[k])charts[k].destroy();charts[k]=null;});}
+
+// ================================================================
+// AUTH
+// ================================================================
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+async function doLogin(){
+  const login=document.getElementById('li').value.trim().toLowerCase();
+  const pass=document.getElementById('lp').value;
+  const err=document.getElementById('lerr');
+
+  let matchAdmin = login===ADMIN.login&&pass===ADMIN.pass;
+  const mgr=MANAGERS.find(m=>m.login===login&&m.pass===pass);
+  if(!matchAdmin&&!mgr){err.style.display='block';return;}
+
+  err.style.display='none';
+  // Load data from Sheets on first login
+  if(!dataLoaded) await loadFromSheets();
+
+  if(matchAdmin){currentUser={role:'admin'};showApp();showAdminView();}
+  else{currentUser={role:'manager',manager:mgr};showApp();showManagerView(mgr);}
+}
+function doLogout(){
+  currentUser=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('li').value='';document.getElementById('lp').value='';
+  destroyCharts();
+}
+function showApp(){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';}
+
+// ================================================================
+// YEAR BAR HELPERS
+// ================================================================
+function renderYearBar(containerId, activeYear, onSelect){
+  const el=document.getElementById(containerId);
+  let html=`<span class="year-label">Год:</span>`;
+  years.forEach(y=>{ html+=`<button class="year-btn${y===activeYear?' active':''}" onclick="(${onSelect.toString()})(${y})">${y}</button>`; });
+  // кнопка добавления года убрана — год добавляется автоматически
+  el.innerHTML=html;
+}
+
+function addYear(){
+  const next=Math.max(...years)+1;
+  if(years.includes(next)) return;
+  years.push(next);
+  if(!inputData[next]) inputData[next]=blankYearData();
+  if(!comments[next]) comments[next]=blankComments();
+  saveState();
+  refreshYearBars();
+}
+
+function refreshYearBars(){
+  renderMgrYearBar();
+  renderAdmRatingYearBar();
+  renderAdmDataYearBar();
+  populateCumulSelects();
+}
+
+// ================================================================
+// MANAGER VIEW
+// ================================================================
+function showManagerView(mgr){
+  document.getElementById('manager-view').classList.remove('hidden');
+  document.getElementById('admin-view').classList.add('hidden');
+  document.getElementById('hav').textContent=mgr.initials;
+  document.getElementById('hname').textContent=mgr.name;
+  document.getElementById('mgr-greeting').textContent='Здравствуйте, '+mgr.name.split(' ')[1];
+  mgrSelectedYear=SEED_YEAR; mgrSelectedMo=0;
+  renderMgrYearBar();
+  renderMgrMonthTabs();
+  renderManagerMonth();
+  renderMgrKtuChart();
+}
+
+function renderMgrYearBar(){
+  const mi=MANAGERS.findIndex(m=>m.id===currentUser.manager.id);
+  const el=document.getElementById('mgr-year-bar');
+  // Только годы где у менеджера есть хоть один месяц с данными
+  const mgrYears=years.filter(y=>
+    inputData[y]&&inputData[y][mi]&&
+    Object.values(inputData[y][mi]).some(d=>d&&d.clients!=null)
+  );
+  if(!mgrYears.length) mgrYears.push(mgrSelectedYear);
+  // Если выбранный год недоступен — переключить на первый доступный
+  if(!mgrYears.includes(mgrSelectedYear)) mgrSelectedYear=mgrYears[0];
+  let html='<span class="year-label">Год:</span>';
+  mgrYears.forEach(y=>{
+    html+=`<button class="year-btn${y===mgrSelectedYear?' active':''}" onclick="mgrSelectedYear=${y};renderMgrYearBar();renderMgrMonthTabs();renderManagerMonth();renderMgrKtuChart();">${y}</button>`;
+  });
+  el.innerHTML=html;
+}
+
+function renderMgrMonthTabs(){
+  const el=document.getElementById('mgr-month-tabs');
+  const mi=MANAGERS.findIndex(m=>m.id===currentUser.manager.id);
+  const year=mgrSelectedYear;
+  let html='';
+  let hasAny=false;
+  MONTH_NAMES.forEach((m,i)=>{
+    const d=inputData[year]?.[mi]?.[i];
+    if(d&&d.clients!=null){
+      hasAny=true;
+      html+=`<button class="tab-btn${i===mgrSelectedMo?' active':''}" data-mo="${i}" onclick="switchMgrMonth(${i})">${m}</button>`;
+    }
+  });
+  if(hasAny) html+=`<button class="tab-btn${mgrSelectedMo===-1?' active':''}" data-mo="-1" onclick="switchMgrMonth(-1)">За год</button>`;
+  el.innerHTML=html;
+  // If selected month has no data — switch to first available
+  const d=inputData[year]?.[mi]?.[mgrSelectedMo];
+  if(mgrSelectedMo!==-1&&(!d||d.clients==null)){
+    for(let i=0;i<12;i++){
+      const dd=inputData[year]?.[mi]?.[i];
+      if(dd&&dd.clients!=null){mgrSelectedMo=i;renderManagerMonth();break;}
+    }
+  }
+}
+
+function switchMgrMonth(mo){
+  mgrSelectedMo=mo;
+  // Use data-mo attribute to correctly identify each button
+  document.querySelectorAll('#mgr-month-tabs .tab-btn').forEach(t=>{
+    t.classList.toggle('active', parseInt(t.dataset.mo)===mo);
+  });
+  renderManagerMonth();
+}
+
+function renderManagerMonth(){
+  const mi=MANAGERS.findIndex(m=>m.id===currentUser.manager.id);
+  const year=mgrSelectedYear;
+  const mo=mgrSelectedMo;
+  const isCumul=mo===-1;
+  let r;
+  if(isCumul){
+    const rows=calcCumulRangeWithKTU(year,0,11);
+    r=rows[mi];
+  } else {
+    const rows=calcMonthWithKTU(year,mo);
+    r=rows[mi];
+  }
+
+  const pct=v=>(v*100).toFixed(1)+'%';
+  const f3=v=>v!=null?v.toFixed(3):'—';
+
+  if(!r){
+    document.getElementById('mgr-metrics').innerHTML='<p style="font-size:13px;color:var(--text3);font-family:Arial,sans-serif;padding:.5rem 0;">Данных за этот период нет.</p>';
+    document.getElementById('mgr-funnel').innerHTML='';
+    document.getElementById('mgr-coeffs').innerHTML='<p style="font-size:12px;color:var(--text3);font-family:Arial,sans-serif;">Нет данных.</p>';
+    document.getElementById('mgr-sw').innerHTML='';
+    document.getElementById('mgr-comment').innerHTML='<p class="cmt-empty">Нет данных.</p>';
+    return;
+  }
+
+  document.getElementById('mgr-metrics').innerHTML=`
+    <div class="mc hl"><div class="mc-label">КТУ *</div><div class="mc-val">${f3(r.ktu)}</div><div class="mc-sub">${isCumul?'за год':MONTH_NAMES[mo]}</div></div>
+    <div class="mc"><div class="mc-label">KPI **</div><div class="mc-val">${f3(r.kpi)}</div><div class="mc-sub">интегральная оценка</div></div>
+    <div class="mc"><div class="mc-label">Звонки</div><div class="mc-val">${r.calls??'—'}</div><div class="mc-sub">${isCumul?'сумма':'шт'}</div></div>
+    <div class="mc"><div class="mc-label">Клиенты</div><div class="mc-val">${r.clients??'—'}</div><div class="mc-sub">${isCumul?'сумма':'чел'}</div></div>
+    <div class="mc"><div class="mc-label">Покупатели</div><div class="mc-val">${r.buyers??'—'}</div><div class="mc-sub">${isCumul?'сумма':'чел'}</div></div>
+    <div class="mc" style="background:var(--green-bg);border-color:rgba(26,122,74,.2);"><div class="mc-label" style="color:var(--green);">Целевые</div><div class="mc-val" style="color:var(--green);">${r.target_buyers??0}</div><div class="mc-sub">кв + ком</div></div>
+  `;
+
+  document.getElementById('mgr-funnel').innerHTML=`
+    <thead><tr><th>Этап</th><th>Кол-во</th><th>Конверсия</th><th style="min-width:80px"></th></tr></thead>
+    <tbody>
+      <tr><td>Клиенты</td><td>${r.clients}</td><td>—</td><td></td></tr>
+      <tr><td>Встречи</td><td>${r.meetings}</td><td>${pct(r.c1)}</td><td><div class="pb"><div class="pf" style="width:${Math.min(r.c1*100,100)}%"></div></div></td></tr>
+      <tr><td>Брони</td><td>${r.booked}</td><td>${pct(r.c2)}</td><td><div class="pb"><div class="pf" style="width:${Math.min(r.c2*100,100)}%"></div></div></td></tr>
+      <tr><td>Покупатели</td><td>${r.buyers}</td><td>${pct(r.c4)}</td><td><div class="pb"><div class="pf" style="width:${Math.min(r.c4*3*100,100)}%"></div></div></td></tr>
+      <tr><td>Целевые (кв+ком)</td><td>${r.target_buyers??0}</td><td>${pct(r.c5)}</td><td><div class="pb"><div class="pf" style="width:${Math.min(r.c5*3*100,100)}%;background:var(--green)"></div></div></td></tr>
+      <tr><td>Бронь→Покупка</td><td>—</td><td>${pct(r.c3)}</td><td><div class="pb"><div class="pf" style="width:${Math.min(r.c3*100,100)}%"></div></div></td></tr>
+    </tbody>`;
+
+  const bar=(label,val,max,col)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <div style="min-width:140px;font-size:12px;font-family:'Arial',sans-serif;color:var(--text2);">${label}</div>
+    <div class="pb" style="flex:1"><div class="pf" style="width:${Math.min(val/max*100,100)}%;background:${col}"></div></div>
+    <div style="min-width:36px;text-align:right;font-size:12px;font-family:'Arial',sans-serif;">${val.toFixed(2)}</div>
+  </div>`;
+  const coeffsHtml=!isCumul&&r.kLoad!=null?
+    bar('Коэф. нагрузки',r.kLoad,2,r.kLoad>=1?'var(--green)':'var(--amber)')+
+    bar('Коэф. активности',r.kActiv,2,r.kActiv>=1?'var(--green)':'var(--amber)')+
+    bar('Коэф. результата',r.kRes,2,r.kRes>=1?'var(--green)':'var(--amber)')+
+    bar('Коэф. присутствия',r.presence,1.2,'var(--accent)'):
+    '<p style="font-size:12px;color:var(--text3);font-family:Arial,sans-serif;">Детальные коэффициенты — по отдельным месяцам</p>';
+  document.getElementById('mgr-coeffs').innerHTML=coeffsHtml;
+
+  const str=[],wk=[];
+  if(r.c4>=.15)str.push('Высокая итоговая конверсия');else wk.push('Низкая итоговая конверсия');
+  if(r.c1>=.20)str.push('Активно назначает встречи');else wk.push('Мало встреч с клиентами');
+  if(r.c3>=.80)str.push('Отличное дожатие до оплаты');else wk.push('Потери Бронь→Покупка');
+  if(!isCumul&&r.calls>=600)str.push('Высокая активность по звонкам');else if(!isCumul&&r.calls<350)wk.push('Недостаточно звонков');
+  if(!str.length)str.push('Продолжайте работать над показателями');
+  if(!wk.length)wk.push('Нет явных слабых мест — отличная работа!');
+  document.getElementById('mgr-sw').innerHTML=`
+    <div class="sw-card str"><div class="sw-lbl">Сильные стороны</div><ul class="sw-list">${str.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+    <div class="sw-card wk"><div class="sw-lbl">Зоны роста</div><ul class="sw-list">${wk.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
+
+  const cmt=comments[year]?.[currentUser.manager.id]?.[mo===-1?12:mo]||'';
+  document.getElementById('mgr-comment').innerHTML=cmt
+    ?`<div class="cmt-box"><div class="cmt-text">${cmt}</div></div>`
+    :`<p class="cmt-empty">Комментарий ещё не добавлен.</p>`;
+}
+
+function renderMgrKtuChart(){
+  if(charts.mgr) charts.mgr.destroy();
+  const mi=MANAGERS.findIndex(m=>m.id===currentUser.manager.id);
+  const year=mgrSelectedYear;
+  // Only months with data for this manager
+  const activeMonths=[];
+  const activeVals=[];
+  for(let mo=0;mo<12;mo++){
+    const d=inputData[year]?.[mi]?.[mo];
+    if(d&&d.clients!=null){
+      const rows=calcMonthWithKTU(year,mo);
+      activeMonths.push(MONTH_NAMES[mo]);
+      activeVals.push(rows[mi]?+rows[mi].ktu.toFixed(3):null);
+    }
+  }
+  if(!activeMonths.length){return;}
+  charts.mgr=new Chart(document.getElementById('mgr-ktu-chart'),{
+    type:'line',
+    data:{labels:activeMonths,datasets:[
+      {label:'КТУ',data:activeVals,borderColor:'#2d5a8e',backgroundColor:'rgba(45,90,142,.1)',borderWidth:2,pointRadius:4,fill:true,tension:.3,spanGaps:false},
+      {label:'Норма',data:Array(activeMonths.length).fill(1),borderColor:'#ccc',borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{maxRotation:40}}}}
+  });
+}
+
+// ================================================================
+// ADMIN VIEW
+// ================================================================
+function showAdminView(){
+  document.getElementById('admin-view').classList.remove('hidden');
+  document.getElementById('manager-view').classList.add('hidden');
+  document.getElementById('hav').textContent='АД';
+  document.getElementById('hname').textContent='Администратор';
+  // Auto-add current year if not present
+  const thisYear=new Date().getFullYear();
+  if(!years.includes(thisYear)){
+    years.push(thisYear);years.sort();
+    if(!inputData[thisYear]) inputData[thisYear]=blankYearData();
+    if(!comments[thisYear]) comments[thisYear]=blankComments();
+    saveToLocalStorage();
+    ensureYearInSheets(thisYear);
+  }
+  admRatingYear=thisYear; admRatingMo=-1;
+  admDataYear=thisYear; admDataMo=0;
+  renderAdmRatingYearBar();
+  renderAdmRatingMonthTabs();
+  renderRatingTable();
+  renderAdminBarChart();
+  renderAdmDataYearBar();
+  renderAdmDataMonthTabs();
+  renderInputTable();
+  renderCommentsForm();
+  populateCumulSelects();
+}
+
+let currentAdminTab='rating';
+function adminTab(tab){
+  currentAdminTab=tab;
+  ['rating','data','cumul','comments','analytics'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==tab));
+  document.querySelectorAll('.anb').forEach((b,i)=>b.classList.toggle('active',['rating','data','cumul','comments','analytics'][i]===tab));
+  if(tab==='analytics') renderAnalyticsCharts();
+  if(tab==='cumul') renderCumul();
+}
+
+// --- RATING ---
+function renderAdmRatingYearBar(){
+  renderYearBar('adm-year-bar-r',admRatingYear,function(y){admRatingYear=y;renderAdmRatingYearBar();renderAdmRatingMonthTabs();renderRatingTable();renderAdminBarChart();});
+}
+function renderAdmRatingMonthTabs(){
+  const el=document.getElementById('adm-month-tabs-r');
+  let html=`<button class="tab-btn${admRatingMo===-1?' active':''}" onclick="switchAdmRatingMonth(-1)">За год</button>`;
+  MONTH_NAMES.forEach((m,i)=>html+=`<button class="tab-btn${i===admRatingMo?' active':''}" onclick="switchAdmRatingMonth(${i})">${m}</button>`);
+  el.innerHTML=html;
+}
+function switchAdmRatingMonth(mo){
+  admRatingMo=mo;
+  document.querySelectorAll('#adm-month-tabs-r .tab-btn').forEach((t,i)=>{
+    const idx=i===0?-1:i-1;
+    t.classList.toggle('active',idx===mo);
+  });
+  renderRatingTable(); renderAdminBarChart();
+}
+
+function getAdmRatingRows(){
+  let rows;
+  if(admRatingMo===-1){
+    rows=calcCumulRangeWithKTU(admRatingYear,0,11);
+  } else {
+    rows=calcMonthWithKTU(admRatingYear,admRatingMo);
+  }
+  return MANAGERS.map((m,mi)=>({m,mi,r:rows[mi]})).filter(x=>x.r!==null).sort((a,b)=>b.r.ktu-a.r.ktu);
+}
+
+function renderRatingTable(){
+  const sorted=getAdmRatingRows();
+  if(!sorted.length){document.getElementById('rating-table').innerHTML='<tbody><tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--text3);font-family:Arial,sans-serif;font-size:13px;">Нет данных за выбранный период</td></tr></tbody>';return;}
+  const maxKtu=Math.max(...sorted.map(x=>x.r.ktu));
+  let html='<thead><tr><th>#</th><th>Менеджер</th><th>Офис</th><th>КТУ</th><th style="min-width:100px"></th><th>KPI*</th><th>Покупатели</th></tr></thead><tbody>';
+  sorted.forEach((x,rank)=>{
+    const rc=rank===0?'r1':rank===1?'r2':rank===2?'r3':'rn';
+    const pct=(x.r.ktu/maxKtu*100).toFixed(0);
+    const col=x.r.ktu>=1?'var(--green)':'var(--amber)';
+    html+=`<tr>
+      <td><span class="rank-badge ${rc}">${rank+1}</span></td>
+      <td style="font-size:13px;">${x.m.name}</td>
+      <td style="font-size:11px;color:var(--text3);">${x.m.office}</td>
+      <td style="font-size:14px;font-weight:500;color:${col};">${x.r.ktu.toFixed(3)}</td>
+      <td><div class="pb"><div class="pf" style="width:${pct}%;background:${col}"></div></div></td>
+      <td style="font-size:12px;color:var(--text2);">${x.r.kpi.toFixed(3)}</td>
+      <td style="font-size:13px;">${x.r.buyers}</td>
+    </tr>`;
+  });
+  document.getElementById('rating-table').innerHTML=html+'</tbody>';
+}
+
+function renderAdminBarChart(){
+  if(charts.admBar) charts.admBar.destroy();
+  const sorted=getAdmRatingRows();
+  if(!sorted.length) return;
+  charts.admBar=new Chart(document.getElementById('admin-bar-chart'),{
+    type:'bar',
+    data:{labels:sorted.map(x=>x.m.name.split(' ')[0]),
+      datasets:[{label:'КТУ',data:sorted.map(x=>+x.r.ktu.toFixed(3)),
+        backgroundColor:sorted.map(x=>x.r.ktu>=1?'#2d5a8e':'#c47c1a'),borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:3.5,grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{autoSkip:false},grid:{display:false}}}}
+  });
+}
+
+// --- DATA INPUT ---
+function renderAdmDataYearBar(){
+  renderYearBar('adm-year-bar-d',admDataYear,function(y){admDataYear=y;renderAdmDataYearBar();renderAdmDataMonthTabs();renderInputTable();});
+}
+function renderAdmDataMonthTabs(){
+  const el=document.getElementById('adm-month-tabs-d');
+  el.innerHTML=MONTH_NAMES.map((m,i)=>`<button class="tab-btn${i===admDataMo?' active':''}" onclick="switchInputMonth(${i})">${m}</button>`).join('');
+}
+function switchInputMonth(mo){
+  admDataMo=mo;
+  document.querySelectorAll('#adm-month-tabs-d .tab-btn').forEach((t,i)=>t.classList.toggle('active',i===mo));
+  renderInputTable();
+}
+
+function renderInputTable(){
+  const mo=admDataMo; const year=admDataYear;
+  const rows=calcMonthWithKTU(year,mo);
+  const valid=rows.filter(r=>r!==null);
+  const avg=key=>valid.length?valid.reduce((s,r)=>s+(r[key]||0),0)/valid.length:0;
+
+  const offTag=m=>{
+    if(m.officeKey==='dok') return`<span class="ot dok">ДОК</span>`;
+    if(m.officeKey==='grinvud') return`<span class="ot">Гринвуд</span>`;
+    if(m.office==='Все офисы') return`<span class="ot all">Все</span>`;
+    return`<span class="ot">Этика</span>`;
+  };
+  const gv=(mi,key)=>{const d=inputData[year]?.[mi]?.[mo];return d&&d[key]!=null?d[key]:'';};
+  const ktuCls=v=>v>=1.5?'ktu-g':v>=1?'ktu-a':'ktu-w';
+  const pct=v=>(v*100).toFixed(1)+'%';
+
+  let html=`<thead><tr>
+    <th class="ec" style="text-align:left;">Менеджер</th>
+    <th class="ec" title="Вводится">Звонки</th>
+    <th class="ec" title="Вводится">Клиенты</th>
+    <th class="ec" title="Вводится">Встречи</th>
+    <th class="ec" title="Вводится">Брони</th>
+    <th class="ec" title="Вводится">Покупатели</th>
+    <th class="ec" title="Вводится">Целевые пок.</th>
+    <th class="ec" title="Вводится">Кприсут</th>
+    <th class="cc" title="Считается">C1 Кл→Встр</th>
+    <th class="cc" title="Считается">C2 Кл→Бронь</th>
+    <th class="cc" title="Считается">C3 Бр→Пок</th>
+    <th class="cc" title="Считается">C4 Кл→Пок</th>
+    <th class="cc" title="Считается">C5 Кл→Цел</th>
+    <th class="cc" title="Считается">KPI*</th>
+    <th class="cc" title="Считается">Кнагруз</th>
+    <th class="cc" title="Считается">Кактив</th>
+    <th class="cc" title="Считается">Крез</th>
+    <th class="kc" title="Итог">КТУ</th>
+  </tr></thead><tbody>`;
+
+  MANAGERS.forEach((m,mi)=>{
+    const r=rows[mi];
+    const p=v=>r?pct(v):'—'; const f=v=>r?v.toFixed(3):'—'; const f2=v=>r?v.toFixed(2):'—';
+    html+=`<tr>
+      <td class="name-td">${m.name}${offTag(m)}</td>
+      <td><input class="ni" type="number" min="0" id="i-calls-${mi}" value="${gv(mi,'calls')}" oninput="onInpChange()"></td>
+      <td><input class="ni" type="number" min="0" id="i-clients-${mi}" value="${gv(mi,'clients')}" oninput="onInpChange()"></td>
+      <td><input class="ni" type="number" min="0" id="i-meetings-${mi}" value="${gv(mi,'meetings')}" oninput="onInpChange()"></td>
+      <td><input class="ni" type="number" min="0" id="i-booked-${mi}" value="${gv(mi,'booked')}" oninput="onInpChange()"></td>
+      <td><input class="ni" type="number" min="0" id="i-buyers-${mi}" value="${gv(mi,'buyers')}" oninput="onInpChange()"></td>
+      <td><input class="ni" type="number" min="0" id="i-target_buyers-${mi}" value="${gv(mi,'target_buyers')}" oninput="onInpChange()"></td>
+      <td><input class="pi" type="number" min="0" max="2" step="0.01" id="i-presence-${mi}" value="${gv(mi,'presence')}" placeholder="1.00" oninput="onInpChange()"></td>
+      <td class="cc-cell" id="d-c1-${mi}">${p(r?.c1)}</td>
+      <td class="cc-cell" id="d-c2-${mi}">${p(r?.c2)}</td>
+      <td class="cc-cell" id="d-c3-${mi}">${p(r?.c3)}</td>
+      <td class="cc-cell" id="d-c4-${mi}">${p(r?.c4)}</td>
+      <td class="cc-cell" id="d-c5-${mi}">${p(r?.c5)}</td>
+      <td class="cc-cell" id="d-kpi-${mi}">${f(r?.kpi)}</td>
+      <td class="cc-cell" id="d-kload-${mi}">${f2(r?.kLoad)}</td>
+      <td class="cc-cell" id="d-kactiv-${mi}">${f2(r?.kActiv)}</td>
+      <td class="cc-cell" id="d-kres-${mi}">${f2(r?.kRes)}</td>
+      <td class="ktu-cell ${r?ktuCls(r.ktu):''}" id="d-ktu-${mi}">${f(r?.ktu)}</td>
+    </tr>`;
+  });
+
+  if(valid.length){
+    html+=`<tr class="avg-row">
+      <td class="name-td">Среднее</td>
+      <td style="text-align:center;">${avg('calls').toFixed(0)}</td>
+      <td style="text-align:center;">${avg('clients').toFixed(0)}</td>
+      <td style="text-align:center;">${avg('meetings').toFixed(0)}</td>
+      <td style="text-align:center;">${avg('booked').toFixed(0)}</td>
+      <td style="text-align:center;">${avg('buyers').toFixed(0)}</td>
+      <td></td>
+      <td class="cc-cell">${pct(avg('c1'))}</td>
+      <td class="cc-cell">${pct(avg('c2'))}</td>
+      <td class="cc-cell">${pct(avg('c3'))}</td>
+      <td class="cc-cell">${pct(avg('c4'))}</td>
+      <td class="cc-cell">${pct(avg('c5'))}</td>
+      <td class="cc-cell">${avg('kpi').toFixed(3)}</td>
+      <td></td><td></td><td></td>
+      <td class="ktu-cell ktu-a">${avg('ktu').toFixed(3)}</td>
+    </tr>`;
+  }
+  document.getElementById('input-table').innerHTML=html+'</tbody>';
+}
+
+let recalcTimer=null;
+function onInpChange(){
+  clearTimeout(recalcTimer);
+  recalcTimer=setTimeout(()=>{readInputs();liveRecalc();},300);
+}
+function readInputs(){
+  const mo=admDataMo; const year=admDataYear;
+  if(!inputData[year]) inputData[year]=blankYearData();
+  MANAGERS.forEach((_,mi)=>{
+    const g=key=>{const el=document.getElementById(`i-${key}-${mi}`);return el&&el.value!==''?parseFloat(el.value):null;};
+    inputData[year][mi][mo]={calls:g('calls'),clients:g('clients'),meetings:g('meetings'),booked:g('booked'),buyers:g('buyers'),target_buyers:g('target_buyers'),presence:g('presence')};
+  });
+}
+function liveRecalc(){
+  const rows=calcMonthWithKTU(admDataYear,admDataMo);
+  const pct=v=>(v*100).toFixed(1)+'%';
+  const ktuCls=v=>v>=1.5?'ktu-g':v>=1?'ktu-a':'ktu-w';
+  MANAGERS.forEach((_,mi)=>{
+    const r=rows[mi];
+    const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    const sk=(id,v,cls)=>{const el=document.getElementById(id);if(el){el.textContent=v;el.className='ktu-cell '+cls;}};
+    if(!r){['c1','c2','c3','c4','kpi','kload','kactiv','kres'].forEach(k=>s(`d-${k}-${mi}`,'—'));sk(`d-ktu-${mi}`,'—','');return;}
+    s(`d-c1-${mi}`,pct(r.c1));s(`d-c2-${mi}`,pct(r.c2));s(`d-c3-${mi}`,pct(r.c3));s(`d-c4-${mi}`,pct(r.c4));
+    s(`d-kpi-${mi}`,r.kpi.toFixed(3));s(`d-kload-${mi}`,r.kLoad.toFixed(2));s(`d-kactiv-${mi}`,r.kActiv.toFixed(2));s(`d-kres-${mi}`,r.kRes.toFixed(2));
+    sk(`d-ktu-${mi}`,r.ktu.toFixed(3),ktuCls(r.ktu));
+  });
+}
+function saveInputData(){
+  readInputs();
+  saveState();
+  const msg=document.getElementById('save-msg');
+  msg.style.display='inline';
+  setTimeout(()=>msg.style.display='none',3000);
+}
+function clearMonthData(){
+  if(!confirm('Очистить все данные за '+MONTH_NAMES[admDataMo]+' '+admDataYear+'?')) return;
+  MANAGERS.forEach((_,mi)=>{inputData[admDataYear][mi][admDataMo]={calls:null,clients:null,meetings:null,booked:null,buyers:null,presence:null};});
+  saveState(); renderInputTable();
+}
+
+// --- CUMULATIVE ---
+function populateCumulSelects(){
+  const ySel=document.getElementById('cumul-year-from');
+  ySel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  ySel.value=admDataYear;
+  const moFrom=document.getElementById('cumul-mo-from');
+  const moTo=document.getElementById('cumul-mo-to');
+  moFrom.innerHTML=MONTH_NAMES.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+  moTo.innerHTML=MONTH_NAMES.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+  moFrom.value=0; moTo.value=3;
+}
+
+function renderCumul(){
+  const year=parseInt(document.getElementById('cumul-year-from').value);
+  const moFrom=parseInt(document.getElementById('cumul-mo-from').value);
+  const moTo=parseInt(document.getElementById('cumul-mo-to').value);
+  const mTo=Math.max(moFrom,moTo);
+  document.getElementById('cumul-period-label').textContent=`${MONTH_NAMES[moFrom]} – ${MONTH_NAMES[mTo]} ${year}`;
+  cumulMoFrom=moFrom; cumulMoTo=mTo;
+
+  const rows=calcCumulRangeWithKTU(year,moFrom,mTo);
+  const sorted=MANAGERS.map((m,mi)=>({m,mi,r:rows[mi]})).filter(x=>x.r!==null).sort((a,b)=>b.r.ktu-a.r.ktu);
+  const pct=v=>(v*100).toFixed(1)+'%';
+  const f3=v=>v.toFixed(3);
+  const ktuColor=v=>v>=1.5?'var(--green)':v>=1?'var(--accent)':'var(--amber)';
+
+  let html=`<thead><tr>
+    <th>#</th><th>Менеджер</th>
+    <th title="Сумма">Звонки ∑</th>
+    <th title="Сумма">Клиенты ∑</th>
+    <th title="Сумма">Брони ∑</th>
+    <th title="Сумма">Покупатели ∑</th>
+    <th title="Сумма">Целевые ∑</th>
+    <th title="Среднее из конверсий за месяцы">C1 Кл→Встр ⌀</th>
+    <th title="Среднее">C2 Кл→Бронь ⌀</th>
+    <th title="Среднее">C3 Бр→Пок ⌀</th>
+    <th title="Среднее">C4 Кл→Пок ⌀</th>
+    <th title="Среднее">C5 Кл→Цел ⌀</th>
+    <th title="Среднее">KPI* ⌀</th>
+    <th title="Среднее">Кнагруз ⌀</th>
+    <th title="Среднее">Кактив ⌀</th>
+    <th title="Среднее">Крез ⌀</th>
+    <th>КТУ ⌀</th>
+  </tr></thead><tbody>`;
+
+  sorted.forEach((x,rank)=>{
+    const r=x.r;
+    const rc=rank===0?'r1':rank===1?'r2':rank===2?'r3':'rn';
+    html+=`<tr>
+      <td><span class="rank-badge ${rc}">${rank+1}</span></td>
+      <td class="name-td" style="font-size:12px;">${x.m.name}</td>
+      <td>${r.calls}</td><td>${r.clients}</td><td>${r.booked}</td><td>${r.buyers}</td>
+      <td class="cc-cell">${pct(r.c1)}</td>
+      <td class="cc-cell">${pct(r.c2)}</td>
+      <td class="cc-cell">${pct(r.c3)}</td>
+      <td class="cc-cell">${pct(r.c4)}</td>
+      <td class="cc-cell">${f3(r.kpi)}</td>
+      <td class="cc-cell">${r.kLoad.toFixed(2)}</td>
+      <td class="cc-cell">${r.kActiv.toFixed(2)}</td>
+      <td class="cc-cell">${r.kRes.toFixed(2)}</td>
+      <td class="ktu-cell" style="color:${ktuColor(r.ktu)}">${f3(r.ktu)}</td>
+    </tr>`;
+  });
+
+  if(sorted.length){
+    const avg=key=>sorted.reduce((s,x)=>s+(x.r[key]||0),0)/sorted.length;
+    html+=`<tr class="avg-row">
+      <td></td><td class="name-td">Среднее</td>
+      <td>${avg('calls').toFixed(0)}</td><td>${avg('clients').toFixed(0)}</td>
+      <td>${avg('booked').toFixed(0)}</td><td>${avg('buyers').toFixed(0)}</td>
+      <td class="cc-cell">${pct(avg('c1'))}</td><td class="cc-cell">${pct(avg('c2'))}</td>
+      <td class="cc-cell">${pct(avg('c3'))}</td><td class="cc-cell">${pct(avg('c4'))}</td>
+      <td class="cc-cell">${avg('kpi').toFixed(3)}</td>
+      <td class="cc-cell">${avg('kLoad').toFixed(2)}</td>
+      <td class="cc-cell">${avg('kActiv').toFixed(2)}</td>
+      <td class="cc-cell">${avg('kRes').toFixed(2)}</td>
+      <td class="ktu-cell ktu-a">${avg('ktu').toFixed(3)}</td>
+    </tr>`;
+  }
+  document.getElementById('cumul-table').innerHTML=html+'</tbody>';
+
+  // Cumul chart — only managers with data in period
+  if(charts.cumul) charts.cumul.destroy();
+  const cColors=['#2d5a8e','#1a7a4a','#c47c1a','#b83232','#7b4ea0','#1a7490','#4a7a1a','#7a4a1a','#4a1a7a'];
+  if(sorted.length){
+    charts.cumul=new Chart(document.getElementById('cumul-chart'),{
+      type:'bar',
+      data:{labels:sorted.map(x=>x.m.name.split(' ')[0]),
+        datasets:[{label:'КТУ за период',data:sorted.map(x=>+x.r.ktu.toFixed(3)),
+          backgroundColor:sorted.map((x,i)=>x.r.ktu>=1?cColors[i%cColors.length]:'#c47c1a'),borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{min:0,grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{autoSkip:false},grid:{display:false}}}}
+    });
+  }
+}
+
+// --- COMMENTS ---
+function renderCommentsForm(){
+  const el=document.getElementById('comments-form');
+  let html='';
+  years.forEach(year=>{
+    html+=`<div style="margin-bottom:.5rem;font-size:13px;font-family:'Arial',sans-serif;color:var(--accent);font-weight:500;">${year} год</div>`;
+    MANAGERS.forEach(mgr=>{
+      const mls=[...MONTH_NAMES,'За год'];
+      html+=`<div style="margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:.5px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.6rem;">
+          <div class="user-avatar" style="width:30px;height:30px;font-size:10px;">${mgr.initials}</div>
+          <span style="font-size:13px;">${mgr.name}</span>
+          <span style="font-size:11px;color:var(--text3);font-family:'Arial',sans-serif;">${mgr.office}</span>
+        </div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:7px;">
+          ${mls.map((ml,i)=>`<button class="tab-btn ${i===0?'active':''}" style="padding:3px 9px;font-size:11px;" onclick="switchCmt('${year}','${mgr.id}',${i},this)">${ml}</button>`).join('')}
+        </div>
+        ${mls.map((ml,i)=>`<div id="cmt-${year}-${mgr.id}-${i}" class="cmt-editor" ${i>0?'style="display:none"':''}>
+          <textarea id="cmt-ta-${year}-${mgr.id}-${i}" placeholder="Комментарий за ${ml}...">${comments[year]?.[mgr.id]?.[i]||''}</textarea>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <button class="save-btn" onclick="saveComment('${year}','${mgr.id}',${i})">Сохранить</button>
+            <span id="cmt-ok-${year}-${mgr.id}-${i}" style="font-size:11px;color:var(--green);font-family:'Arial',sans-serif;display:none;">✓</span>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
+}
+
+function switchCmt(year,mgrId,idx,btn){
+  for(let i=0;i<13;i++){const e=document.getElementById(`cmt-${year}-${mgrId}-${i}`);if(e)e.style.display=i===idx?'':'none';}
+  btn.closest('div').querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+}
+async function saveComment(year,mgrId,idx){
+  if(!comments[year]) comments[year]=blankComments();
+  if(!comments[year][mgrId]) comments[year][mgrId]=Array(13).fill('');
+  const text=document.getElementById(`cmt-ta-${year}-${mgrId}-${idx}`).value;
+  comments[year][mgrId][idx]=text;
+  await saveCommentToSheets(year,mgrId,idx,text);
+  const ok=document.getElementById(`cmt-ok-${year}-${mgrId}-${idx}`);
+  ok.style.display='inline';
+  setTimeout(()=>ok.style.display='none',2000);
+}
+
+// --- ANALYTICS ---
+function renderAnalyticsCharts(){
+  setTimeout(()=>{
+    const colors=['#2d5a8e','#1a7a4a','#c47c1a','#b83232','#7b4ea0','#1a7490','#4a7a1a','#7a4a1a','#4a1a7a'];
+    const year=admDataYear;
+
+    // Only show months that have data for at least one manager
+    const activeMonths=MONTH_NAMES.map((_,mo)=>{
+      return MANAGERS.some((_,mi)=>{const d=inputData[year]?.[mi]?.[mo];return d&&d.clients!=null;});
+    });
+    const activeLabels=MONTH_NAMES.filter((_,mo)=>activeMonths[mo]);
+    const activeMoIdxs=MONTH_NAMES.map((_,mo)=>mo).filter(mo=>activeMonths[mo]);
+
+    if(charts.buyers) charts.buyers.destroy();
+    charts.buyers=new Chart(document.getElementById('buyers-chart'),{
+      type:'line',
+      data:{labels:activeLabels,datasets:MANAGERS.map((m,mi)=>({
+        label:m.name.split(' ')[0],
+        data:activeMoIdxs.map(mo=>{const rows=calcMonthWithKTU(year,mo);return rows[mi]?rows[mi].buyers:null;}),
+        borderColor:colors[mi],borderWidth:1.5,pointRadius:3,fill:false,tension:.3,spanGaps:false
+      }))},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:8}}},
+        scales:{y:{min:0},x:{grid:{display:false},ticks:{maxRotation:40}}}}
+    });
+
+    if(charts.conv) charts.conv.destroy();
+    // For conversion bar: only managers with any data in active months
+    const lastActiveMo=activeMoIdxs.length?activeMoIdxs[activeMoIdxs.length-1]:null;
+    const moFrom=activeMoIdxs.length?activeMoIdxs[0]:0;
+    const moTo=lastActiveMo??0;
+    const cumRows=activeMoIdxs.length?calcCumulRangeWithKTU(year,moFrom,moTo):MANAGERS.map(()=>null);
+    const convLabels=MANAGERS.filter((_,mi)=>cumRows[mi]!=null).map(m=>m.name.split(' ')[0]);
+    const convData=MANAGERS.map((_,mi)=>cumRows[mi]?+(cumRows[mi].c4*100).toFixed(1):null).filter(v=>v!=null);
+    const convColors=MANAGERS.map((_,mi)=>({mi,ok:cumRows[mi]!=null})).filter(x=>x.ok).map(x=>colors[x.mi]);
+    charts.conv=new Chart(document.getElementById('conv-chart'),{
+      type:'bar',
+      data:{labels:convLabels,datasets:[{label:'%',data:convData,backgroundColor:convColors,borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{min:0,ticks:{callback:v=>v+'%'}},x:{ticks:{autoSkip:false,maxRotation:30},grid:{display:false}}}}
+    });
+
+    if(charts.calls) charts.calls.destroy();
+    charts.calls=new Chart(document.getElementById('calls-chart'),{
+      type:'bar',
+      data:{labels:activeLabels,datasets:MANAGERS.map((m,mi)=>({
+        label:m.name.split(' ')[0],
+        data:activeMoIdxs.map(mo=>{const d=inputData[year]?.[mi]?.[mo];return d&&d.calls?d.calls:null;}),
+        backgroundColor:colors[mi],borderRadius:2
+      }))},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:8}}},
+        scales:{x:{grid:{display:false},ticks:{maxRotation:40}},y:{min:0,grid:{color:'rgba(0,0,0,.05)'}}}}
+    });
+  },100);
+}
+</script>
+</body>
+</html>
